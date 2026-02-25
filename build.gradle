@@ -1,0 +1,10 @@
+android {
+    namespace "com.dev.systemgesture"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.dev.systemgesture"
+        minSdk 26
+        targetSdk 34
+    }
+}
