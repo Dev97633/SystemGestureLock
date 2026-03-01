@@ -1,3 +1,10 @@
+package com.dev.systemgesture.core
+
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
+import android.content.Context
+import com.dev.systemgesture.admin.MyDeviceAdminReceiver
+
 object LockController {
 
     fun lock(context: Context) {
