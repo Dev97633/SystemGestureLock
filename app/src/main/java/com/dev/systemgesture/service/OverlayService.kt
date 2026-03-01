@@ -46,5 +46,5 @@ class OverlayService : Service() {
         wm.addView(view, params)
     }
 
-    override fun onBind(intent: Intent?) = null
+    override fun onBind(intent: Intent?): IBinder? = null
 }
