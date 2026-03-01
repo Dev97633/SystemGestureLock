@@ -1,3 +1,15 @@
+package com.dev.systemgesture.service
+
+import android.app.Service
+import android.content.Intent
+import android.graphics.PixelFormat
+import android.os.IBinder
+import android.view.MotionEvent
+import android.view.View
+import android.view.WindowManager
+import com.dev.systemgesture.core.LockController
+import com.dev.systemgesture.util.NotificationUtil
+
 class OverlayService : Service() {
 
     private var lastTap = 0L
