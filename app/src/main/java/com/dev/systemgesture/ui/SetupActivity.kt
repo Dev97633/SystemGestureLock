@@ -1,5 +1,7 @@
 package com.dev.systemgesture.ui
 
+import android.accessibilityservice.AccessibilityServiceInfo
+import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -7,11 +9,13 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.accessibility.AccessibilityManager
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.dev.systemgesture.admin.MyDeviceAdminReceiver
+import com.dev.systemgesture.service.GestureAccessibilityService
 import com.dev.systemgesture.service.OverlayService
-import android.app.admin.DevicePolicyManager
 
 class SetupActivity : AppCompatActivity() {
 
@@ -63,6 +67,16 @@ class SetupActivity : AppCompatActivity() {
             return
         }
 
+        if (!isAccessibilityServiceEnabled()) {
+            Toast.makeText(
+                this,
+                "Enable accessibility service to detect double tap gestures.",
+                Toast.LENGTH_LONG
+            ).show()
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            return
+        }
+
         startOverlayService()
         hideLauncherIcon()
         finish()
@@ -71,7 +85,21 @@ class SetupActivity : AppCompatActivity() {
     private fun canStartFeature(): Boolean {
         val dpm = getSystemService(DEVICE_POLICY_SERVICE) as DevicePolicyManager
         val admin = ComponentName(this, MyDeviceAdminReceiver::class.java)
-        return Settings.canDrawOverlays(this) && dpm.isAdminActive(admin)
+        return Settings.canDrawOverlays(this) &&
+            dpm.isAdminActive(admin) &&
+            isAccessibilityServiceEnabled()
+    }
+
+    private fun isAccessibilityServiceEnabled(): Boolean {
+        val manager = getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager
+        val enabledServices = manager.getEnabledAccessibilityServiceList(
+            AccessibilityServiceInfo.FEEDBACK_ALL_MASK
+        )
+
+        return enabledServices.any {
+            it.resolveInfo?.serviceInfo?.packageName == packageName &&
+                it.resolveInfo?.serviceInfo?.name == GestureAccessibilityService::class.java.name
+        }
     }
 
     private fun startOverlayService() {
