@@ -1,17 +1,15 @@
 package com.dev.systemgesture.ui
 
+import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.dev.systemgesture.admin.MyDeviceAdminReceiver
-import com.dev.systemgesture.service.OverlayService
-import android.app.admin.DevicePolicyManager
+import com.dev.systemgesture.service.GestureAccessibilityService
 
 class SetupActivity : AppCompatActivity() {
 
@@ -19,7 +17,7 @@ class SetupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val btn = Button(this)
-        btn.text = "Enable System Gesture Feature"
+        btn.text = "Enable Double Tap Lock"
         setContentView(btn)
 
         btn.setOnClickListener {
@@ -30,23 +28,12 @@ class SetupActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (canStartFeature()) {
-            startOverlayService()
             hideLauncherIcon()
             finish()
         }
     }
 
     private fun ensurePermissionsAndStart() {
-        if (!Settings.canDrawOverlays(this)) {
-            startActivity(
-                Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:$packageName")
-                )
-            )
-            return
-        }
-
         val dpm = getSystemService(DEVICE_POLICY_SERVICE) as DevicePolicyManager
         val admin = ComponentName(this, MyDeviceAdminReceiver::class.java)
 
@@ -63,7 +50,11 @@ class SetupActivity : AppCompatActivity() {
             return
         }
 
-        startOverlayService()
+        if (!isAccessibilityServiceEnabled()) {
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            return
+        }
+
         hideLauncherIcon()
         finish()
     }
@@ -71,16 +62,19 @@ class SetupActivity : AppCompatActivity() {
     private fun canStartFeature(): Boolean {
         val dpm = getSystemService(DEVICE_POLICY_SERVICE) as DevicePolicyManager
         val admin = ComponentName(this, MyDeviceAdminReceiver::class.java)
-        return Settings.canDrawOverlays(this) && dpm.isAdminActive(admin)
+        return dpm.isAdminActive(admin) && isAccessibilityServiceEnabled()
     }
 
-    private fun startOverlayService() {
-        val intent = Intent(this, OverlayService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
-        }
+    private fun isAccessibilityServiceEnabled(): Boolean {
+        val expectedComponent = ComponentName(this, GestureAccessibilityService::class.java)
+        val enabledServices = Settings.Secure.getString(
+            contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: return false
+
+        return enabledServices
+            .split(':')
+            .any { ComponentName.unflattenFromString(it) == expectedComponent }
     }
 
     private fun hideLauncherIcon() {
