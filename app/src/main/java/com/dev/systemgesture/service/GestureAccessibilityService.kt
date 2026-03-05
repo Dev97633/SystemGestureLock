@@ -7,16 +7,15 @@ import com.dev.systemgesture.core.LockController
 class GestureAccessibilityService : AccessibilityService() {
 
     private var lastTapAt = 0L
-override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         val type = event?.eventType ?: return
-        if (type != AccessibilityEvent.TYPE_TOUCH_INTERACTION_END &&
-            type != AccessibilityEvent.TYPE_VIEW_CLICKED
-        ) {
+    if (type != AccessibilityEvent.TYPE_TOUCH_INTERACTION_END) {
             return
         }
 
         val now = System.currentTimeMillis()
-        if (now - lastTapAt in 1..DOUBLE_TAP_WINDOW_MS) {
+        val elapsed = now - lastTapAt
+        if (elapsed in DOUBLE_TAP_MIN_GAP_MS..DOUBLE_TAP_WINDOW_MS) {
             LockController.lock(this)
             lastTapAt = 0L
             return
@@ -27,6 +26,7 @@ override fun onAccessibilityEvent(event: AccessibilityEvent?) {
     override fun onInterrupt() = Unit
 
     companion object {
+        private const val DOUBLE_TAP_MIN_GAP_MS = 60L
         private const val DOUBLE_TAP_WINDOW_MS = 400L
     }
 }
