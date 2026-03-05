@@ -8,7 +8,10 @@ class GestureAccessibilityService : AccessibilityService() {
 
     private var lastTapAt = 0L
 override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-    if (event?.eventType != AccessibilityEvent.TYPE_TOUCH_INTERACTION_START) {
+        val type = event?.eventType ?: return
+        if (type != AccessibilityEvent.TYPE_TOUCH_INTERACTION_END &&
+            type != AccessibilityEvent.TYPE_VIEW_CLICKED
+        ) {
             return
         }
 
@@ -19,9 +22,11 @@ override fun onAccessibilityEvent(event: AccessibilityEvent?) {
             return
         }
         lastTapAt = now
-}
-    override fun onInterrupt() {}    
+    }
+
+    override fun onInterrupt() = Unit
+
     companion object {
-        private const val DOUBLE_TAP_WINDOW_MS = 350L
+        private const val DOUBLE_TAP_WINDOW_MS = 400L
     }
 }
