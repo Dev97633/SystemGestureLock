@@ -51,10 +51,36 @@ class SetupActivity : AppCompatActivity() {
             return
         }
 
-        val dpm = getSystemService(DEVICE_POLICY_SERVICE) as DevicePolicyManager
         val admin = ComponentName(this, MyDeviceAdminReceiver::class.java)
+        val dpm = getSystemService(DEVICE_POLICY_SERVICE) as DevicePolicyManager
+
+        if (!canLockWithoutAdmin() && !dpm.isAdminActive(admin)) {
+            Toast.makeText(
+                this,
+                "Enable device admin so double tap can lock the screen on this Android version.",
+                Toast.LENGTH_LONG
+            ).show()
+
+            startActivity(
+                Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                    putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, admin)
+                    putExtra(
+                        DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+                        "Device admin gives the most reliable screen lock."
+                    )
+                }
+            )
+
+            return
+        }
 
         if (!dpm.isAdminActive(admin)) {
+            Toast.makeText(
+                this,
+                "Device admin is optional on Android 9+; you can skip it and continue.",
+                Toast.LENGTH_LONG
+            ).show()
+
             startActivity(
                 Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
                     putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, admin)
@@ -64,7 +90,8 @@ class SetupActivity : AppCompatActivity() {
                     )
                 }
             )
-            
+
+            return
         }
 
         if (!isAccessibilityServiceEnabled()) {
@@ -86,8 +113,12 @@ class SetupActivity : AppCompatActivity() {
         val dpm = getSystemService(DEVICE_POLICY_SERVICE) as DevicePolicyManager
         return Settings.canDrawOverlays(this) &&
         (dpm.isAdminActive(ComponentName(this, MyDeviceAdminReceiver::class.java)) ||
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) &&
+                canLockWithoutAdmin()) &&
             isAccessibilityServiceEnabled()
+    }
+
+    private fun canLockWithoutAdmin(): Boolean {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
     }
 
     private fun isAccessibilityServiceEnabled(): Boolean {
