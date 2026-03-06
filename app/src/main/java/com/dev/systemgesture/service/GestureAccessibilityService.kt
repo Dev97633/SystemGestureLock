@@ -14,14 +14,13 @@ class GestureAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         val safeEvent = event ?: return
         val type = safeEvent.eventType
-        val type = safeEvent.eventType
-    if (type != AccessibilityEvent.TYPE_TOUCH_INTERACTION_END &&
-       type != AccessibilityEvent.TYPE_TOUCH_INTERACTION_START &&
+        if (type != AccessibilityEvent.TYPE_TOUCH_INTERACTION_END &&
+            type != AccessibilityEvent.TYPE_TOUCH_INTERACTION_START &&
             type != AccessibilityEvent.TYPE_VIEW_CLICKED
             ) {
             return
         }
-    val now = safeEvent.eventTime
+        val now = safeEvent.eventTime
         val signature = (now shl 8) + type.toLong()
         if (signature == lastEventSignature) {
             return
