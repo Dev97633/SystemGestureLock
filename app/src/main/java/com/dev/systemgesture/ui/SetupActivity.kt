@@ -60,11 +60,10 @@ class SetupActivity : AppCompatActivity() {
                     putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, admin)
                     putExtra(
                         DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                        "Allow device admin so double tap can lock the screen."
+                        "Device admin gives the most reliable screen lock. You can skip and use accessibility fallback on supported Android versions."
                     )
                 }
             )
-            return
         }
 
         if (!isAccessibilityServiceEnabled()) {
@@ -84,9 +83,9 @@ class SetupActivity : AppCompatActivity() {
 
     private fun canStartFeature(): Boolean {
         val dpm = getSystemService(DEVICE_POLICY_SERVICE) as DevicePolicyManager
-        val admin = ComponentName(this, MyDeviceAdminReceiver::class.java)
         return Settings.canDrawOverlays(this) &&
-            dpm.isAdminActive(admin) &&
+            (dpm.isAdminActive(ComponentName(this, MyDeviceAdminReceiver::class.java)) ||
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) &&
             isAccessibilityServiceEnabled()
     }
 
