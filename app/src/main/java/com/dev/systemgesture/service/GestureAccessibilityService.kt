@@ -8,26 +8,16 @@ import com.dev.systemgesture.ui.SetupActivity
 
 class GestureAccessibilityService : AccessibilityService() {
 
-    private var lastTapAt = 0L
-     private var lastEventSignature = 0L
+        private var lastTouchEndAt = 0L
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         val safeEvent = event ?: return
         val type = safeEvent.eventType
-        if (type != AccessibilityEvent.TYPE_TOUCH_INTERACTION_END &&
-            type != AccessibilityEvent.TYPE_TOUCH_INTERACTION_START &&
-            type != AccessibilityEvent.TYPE_VIEW_CLICKED
-            ) {
+                if (type != AccessibilityEvent.TYPE_TOUCH_INTERACTION_END) {
             return
         }
-        val now = safeEvent.eventTime
-        val signature = (now shl 8) + type.toLong()
-        if (signature == lastEventSignature) {
-            return
-        }
-        lastEventSignature = signature
-
-        val elapsed = now - lastTapAt
+         val now = safeEvent.eventTime
+        val elapsed = now - lastTouchEndAt
         if (elapsed in DOUBLE_TAP_MIN_GAP_MS..DOUBLE_TAP_WINDOW_MS) {
             val locked = LockController.lock(this)
             if (!locked) {
@@ -37,16 +27,17 @@ class GestureAccessibilityService : AccessibilityService() {
                 startActivity(setupIntent)
             }
 
-            lastTapAt = 0L
+            lastTouchEndAt = 0L
             return
         }
-        lastTapAt = now
+        
+        lastTouchEndAt = now
     }
 
     override fun onInterrupt() = Unit
 
     companion object {
-        private const val DOUBLE_TAP_MIN_GAP_MS = 40L
-        private const val DOUBLE_TAP_WINDOW_MS = 750L
+        private const val DOUBLE_TAP_MIN_GAP_MS = 60L
+        private const val DOUBLE_TAP_WINDOW_MS = 500L
     }
 }
