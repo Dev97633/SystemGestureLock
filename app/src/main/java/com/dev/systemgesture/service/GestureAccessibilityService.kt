@@ -8,12 +8,15 @@ class GestureAccessibilityService : AccessibilityService() {
 
     private var lastTapAt = 0L
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        val type = event?.eventType ?: return
-    if (type != AccessibilityEvent.TYPE_TOUCH_INTERACTION_END) {
+        val safeEvent = event ?: return
+        val type = safeEvent.eventType
+    if (type != AccessibilityEvent.TYPE_TOUCH_INTERACTION_END &&
+            type != AccessibilityEvent.TYPE_VIEW_CLICKED
+            ) {
             return
         }
 
-        val now = System.currentTimeMillis()
+       val now = safeEvent.eventTime
         val elapsed = now - lastTapAt
         if (elapsed in DOUBLE_TAP_MIN_GAP_MS..DOUBLE_TAP_WINDOW_MS) {
             LockController.lock(this)
