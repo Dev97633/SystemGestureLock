@@ -70,7 +70,7 @@ class SetupActivity : AppCompatActivity() {
         if (!isAccessibilityServiceEnabled()) {
             Toast.makeText(
                 this,
-                "Enable accessibility service to detect double tap gestures.",
+                "Device admin gives the most reliable screen lock. You can skip and use accessibility fallback on supported Android versions."
                 Toast.LENGTH_LONG
             ).show()
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
